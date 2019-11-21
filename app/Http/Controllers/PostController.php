@@ -18,20 +18,9 @@ class PostController extends Controller
     public function index(Request $request)
     {
         //lógica da aplicação
-        if($request->wantsJson()) {
-            return new PostResourceCollection(Post::all());
+        if ($request->wantsJson()) {
+            return new PostResourceCollection(Post::with('comments')->get());
         }
-    
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
     }
 
     /**
@@ -48,14 +37,9 @@ class PostController extends Controller
         ]);
 
         $post = Post::create($request->only(['title', 'content']));
-
-        //if ($post->save()){
-            if ($request->wantsJson()) {
-                return new PostResource($post);
-          //  }
-
+        if ($request->wantsJson()) {
+            return new PostResource($post);
         }
-
     }
 
     /**
@@ -64,22 +48,9 @@ class PostController extends Controller
      * @param  \App\Post  $Post
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Post $post)
     {
-        $post = Post::find($id);
-
         return new PostResource($post);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Post  $Post
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Post $Post)
-    {
-        //
     }
 
     /**
@@ -89,23 +60,16 @@ class PostController extends Controller
      * @param  \App\Post  $Post
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Post $post)
     {
         $request->validate([
             'title' => 'required|unique:posts|max:255',
             'content' => 'required',
         ]);
 
+        $post->update($request->only(['title', 'content']));
 
-        $post = Post::find($id);
-
-        $post->title = $request->get('title');
-        $post->content = $request->get('content');
-
-        $post->save();
-    
         return new PostResource($post);
-
     }
 
     /**
@@ -114,8 +78,10 @@ class PostController extends Controller
      * @param  \App\Post  $Post
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Post $Post)
+    public function destroy(Post $post)
     {
-        //
+        $post->comments()->delete();
+        $post->delete();
+        return response()->json(['data'=> ['message'=> 'Post deleted!']]);
     }
 }

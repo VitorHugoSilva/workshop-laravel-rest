@@ -13,7 +13,9 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::resource('posts', 'PostController');
+Route::resource('posts', 'PostController')->except(['create', 'edit']);
+
+Route::resource('comments', 'CommentController')->except(['create', 'edit']);
 
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\CommentResource;
+use App\Http\Resources\CommentResourceCollection;
 use App\Models\Comment;
 use Illuminate\Http\Request;
 
@@ -12,19 +14,12 @@ class CommentController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        //lógica da aplicação
+        if ($request->wantsJson()) {
+            return new CommentResourceCollection(Comment::all());
+        }
     }
 
     /**
@@ -35,7 +30,14 @@ class CommentController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'comment' => 'required|max:255',
+            'post_id' => 'required|integer|exists:posts,id'
+        ]);
+        $comment = Comment::create($request->only(['comment', 'post_id']));
+        if ($request->wantsJson()) {
+            return new CommentResource($comment);
+        }
     }
 
     /**
@@ -46,18 +48,7 @@ class CommentController extends Controller
      */
     public function show(Comment $comment)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Comment  $comment
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Comment $comment)
-    {
-        //
+        return new CommentResource($comment);
     }
 
     /**
@@ -69,7 +60,14 @@ class CommentController extends Controller
      */
     public function update(Request $request, Comment $comment)
     {
-        //
+        $request->validate([
+            'comment' => 'required|max:255'
+        ]);
+
+        $comment->update($request->only(['comment']));
+        if ($request->wantsJson()) {
+            return new CommentResource($comment);
+        }
     }
 
     /**
@@ -80,6 +78,8 @@ class CommentController extends Controller
      */
     public function destroy(Comment $comment)
     {
-        //
+        $comment->delete();
+        return response()->json(['data' => ['message' => 'Comment deleted!']]);
+    
     }
 }

@@ -4,8 +4,9 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-use App\Http\Resources\CommentResource;
-use App\User;
+use App\Http\Resources\CommentResourceCollection;
+use Illuminate\Support\Arr;
+
 
 class PostResource extends JsonResource
 {
@@ -16,13 +17,19 @@ class PostResource extends JsonResource
      * @return array
      */
     public function toArray($request)
-    {
-        return [
+    {   
+        $response = [
+            'id' => $this->id,
             'titulo' => $this->title,
-            'conteúdo' => $this->content,
-            'comentários' => CommentResource::collection($this->comments),
-            'users' => User::all(),
-            'data_agora' => \Carbon\Carbon::now()
-        ];
+            'conteudo' => $this->content
+        ]; 
+        if ($request->has('with')) {
+            switch ($request->get('with')) {
+                case 'comments':
+                    $response = Arr::add($response,'comments', new CommentResourceCollection($this->comments));
+                    break;
+            }
+        }
+        return $response;
     }
 }
