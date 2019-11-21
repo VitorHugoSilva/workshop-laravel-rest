@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use Illuminate\Http\Request;
 
+use App\Http\Resources\PostResource;
+use App\Http\Resources\PostResourceCollection;
+
 class PostController extends Controller
 {
     /**
@@ -12,9 +15,13 @@ class PostController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        //lógica da aplicação
+        if($request->wantsJson()) {
+            return new PostResourceCollection(Post::all());
+        }
+    
     }
 
     /**
@@ -35,7 +42,20 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'title' => 'required|unique:posts|max:255',
+            'content' => 'required',
+        ]);
+
+        $post = Post::create($request->only(['title', 'content']));
+
+        //if ($post->save()){
+            if ($request->wantsJson()) {
+                return new PostResource($post);
+          //  }
+
+        }
+
     }
 
     /**
@@ -44,9 +64,11 @@ class PostController extends Controller
      * @param  \App\Post  $Post
      * @return \Illuminate\Http\Response
      */
-    public function show(Post $Post)
+    public function show($id)
     {
-        //
+        $post = Post::find($id);
+
+        return new PostResource($post);
     }
 
     /**
@@ -67,9 +89,23 @@ class PostController extends Controller
      * @param  \App\Post  $Post
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Post $Post)
+    public function update(Request $request, $id)
     {
-        //
+        $request->validate([
+            'title' => 'required|unique:posts|max:255',
+            'content' => 'required',
+        ]);
+
+
+        $post = Post::find($id);
+
+        $post->title = $request->get('title');
+        $post->content = $request->get('content');
+
+        $post->save();
+    
+        return new PostResource($post);
+
     }
 
     /**
