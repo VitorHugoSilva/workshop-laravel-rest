@@ -21,7 +21,8 @@ class PostResource extends JsonResource
         $response = [
             'id' => $this->id,
             'titulo' => $this->title,
-            'conteudo' => $this->content
+            'conteudo' => $this->content,
+            'data_hora' => $this->created_at->format('d-m-Y : H:i:s')
         ]; 
         if ($request->has('with')) {
             switch ($request->get('with')) {
